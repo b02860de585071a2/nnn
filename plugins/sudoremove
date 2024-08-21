@@ -1,0 +1,56 @@
+#!/bin/bash
+
+selection="${XDG_CONFIG_HOME:-$HOME/.config}/nnn/.selection"
+
+# Check what we're deleting
+if [ -s "$selection" ]; then
+	printf "'c'urrent/'s'election? "
+	read -r response
+		if [ "$response" = "c" ] || [ "$response" = "C" ]; then
+			# Confirm, to be safe
+			printf "Delete \"$1\"? [y/n] "
+			read -r response
+				if [ "$response" = "y" ] || [ "$response" = "Y" ]; then
+					sudo rm -rfv -- $1
+				elif [ "$response" = "n" ] || [ "$response" = "N" ]; then
+					printf "Delete operation aborted."
+					read -r _
+				else
+					printf "Error, aborting."
+					read -r _
+				fi
+		elif [ "$response" = "s" ] || [ "$response" = "S" ]; then
+			# Confirm, to be safe
+			printf "Delete selection? [y/n] "
+			read -r response
+				if [ "$response" = "y" ] || [ "$response" = "Y" ]; then
+					rmselection=$(xargs -0 < "$selection")
+					sudo rm -rfv -- $rmselection
+					# Clear selection
+					if [ -p "$NNN_PIPE" ]; then
+						printf "-" > "$NNN_PIPE"
+					fi
+				elif [ "$response" = "n" ] || [ "$response" = "N" ]; then
+					printf "Delete operation aborted."
+					read -r _
+				else
+					printf "Error, aborting."
+					read -r _
+				fi
+		fi
+elif ! [ -s "$selection" ]; then
+	printf "Delete \"$1\"? [y/n] "
+		read -r response
+			if [ "$response" = "y" ] || [ "$response" = "Y" ]; then
+				sudo rm -rfv $1
+			elif [ "$response" = "n" ] || [ "$response" = "N" ]; then
+				printf "Delete operation aborted."
+				read -r _
+			else
+				printf "Error, aborting."
+				read -r _
+			fi
+else
+	printf "Error, aborting."
+	read -r _
+fi

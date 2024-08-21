@@ -1,0 +1,26 @@
+#!/bin/bash
+
+selection="${XDG_CONFIG_HOME:-$HOME/.config}/nnn/.selection"
+
+# Confirm before action
+if [ -s "$selection" ]; then
+	printf "Move selection to current directory? [y/n] "
+    read -r response
+		if [ "$response" = "y" ] || [ "$response" = "Y" ]; then
+			moveselection=$(xargs -0 < "$selection")
+			sudo mv -i -- $moveselection "$PWD"
+			# Clear the selection (if necessary)
+			if [ -p "$NNN_PIPE" ]; then
+				printf "-" > "$NNN_PIPE"
+			fi
+		elif [ "$response" = "n" ] || [ "$response" = "N" ]; then
+			printf "Move operation aborted."
+			read -r _
+		else
+			printf "Error, aborting without changes."
+			read -r _
+		fi
+elif ! [ -s "$selection" ]; then
+	printf "0 selected"
+	read -r _
+fi
